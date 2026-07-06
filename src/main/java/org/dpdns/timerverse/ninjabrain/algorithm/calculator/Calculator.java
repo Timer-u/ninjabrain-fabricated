@@ -1,0 +1,196 @@
+package org.dpdns.timerverse.ninjabrain.algorithm.calculator;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.dpdns.timerverse.ninjabrain.algorithm.blind.BlindPosition;
+import org.dpdns.timerverse.ninjabrain.algorithm.blind.BlindResult;
+import org.dpdns.timerverse.ninjabrain.algorithm.config.CalculatorSettings;
+import org.dpdns.timerverse.ninjabrain.algorithm.config.StdDevSettings;
+import org.dpdns.timerverse.ninjabrain.algorithm.divine.DivineResult;
+import org.dpdns.timerverse.ninjabrain.algorithm.divine.Fossil;
+import org.dpdns.timerverse.ninjabrain.algorithm.divine.IDivineContext;
+import org.dpdns.timerverse.ninjabrain.algorithm.endereye.EnderEyeThrow;
+import org.dpdns.timerverse.ninjabrain.algorithm.statistics.Posterior;
+import org.dpdns.timerverse.ninjabrain.algorithm.statistics.Prior;
+import org.dpdns.timerverse.ninjabrain.algorithm.stronghold.Chunk;
+import org.dpdns.timerverse.ninjabrain.algorithm.stronghold.Ring;
+import org.dpdns.timerverse.ninjabrain.algorithm.mcversion.McVersion;
+import org.dpdns.timerverse.ninjabrain.algorithm.util.Coords;
+import org.dpdns.timerverse.ninjabrain.algorithm.util.Pair;
+
+public class Calculator {
+
+	private final int numberOfReturnedPredictions;
+	private final boolean useAdvancedStatistics;
+	private final StdDevSettings stdDevSettings;
+
+	public Calculator(CalculatorSettings calculatorSettings, StdDevSettings stdDevSettings) {
+		this.numberOfReturnedPredictions = calculatorSettings.numberOfReturnedPredictions;
+		this.useAdvancedStatistics = calculatorSettings.useAdvancedStatistics;
+		this.stdDevSettings = stdDevSettings;
+	}
+
+	public CalculatorResult triangulate(List<EnderEyeThrow> eyeThrows, IDivineContext divineContext) {
+		if (eyeThrows.size() == 0)
+			return null;
+		Posterior posterior = new Posterior(eyeThrows, divineContext, stdDevSettings.stdDev, stdDevSettings.altStdDev, useAdvancedStatistics, McVersion.V1_21);
+		return new CalculatorResult(posterior, eyeThrows, numberOfReturnedPredictions);
+	}
+
+	public Posterior getPosterior(List<EnderEyeThrow> eyeThrows, IDivineContext divineContext) {
+		if (eyeThrows.size() == 0)
+			return null;
+		return new Posterior(eyeThrows, divineContext, stdDevSettings.stdDev, stdDevSettings.altStdDev, useAdvancedStatistics, McVersion.V1_21);
+	}
+
+	public BlindResult blind(BlindPosition b, IDivineContext divineContext) {
+		int distanceThreshold = 400;
+		int h = 2;
+		double phi_p = phi(b.x, b.z);
+		double probability = getHighrollProbability(b.x, b.z, distanceThreshold, divineContext);
+		int deltaX1 = h;
+		int deltaZ1 = 0;
+		double probability1 = getHighrollProbability(b.x + deltaX1, b.z + deltaZ1, distanceThreshold, divineContext);
+		double probabilityDerivative1 = (probability1 - probability) / Math.sqrt(deltaX1 * deltaX1 + deltaZ1 * deltaZ1);
+		int deltaX2 = deltaZ1;
+		int deltaZ2 = -deltaX1;
+		double probability2 = getHighrollProbability(b.x + deltaX2, b.z + deltaZ2, distanceThreshold, divineContext);
+		double probabilityDerivative2 = (probability2 - probability) / Math.sqrt(deltaX1 * deltaX1 + deltaZ1 * deltaZ1);
+		double probabilityDerivative = Math.sqrt(probabilityDerivative1 * probabilityDerivative1 + probabilityDerivative2 * probabilityDerivative2);
+		double ninetiethPercentileDerivative = probabilityDerivative * Math.sqrt(0.1 / (2 * probability * probability * probability)) * distanceThreshold;
+		double avgDist = getAverageDistance(b.x, b.z, 10, 20);
+		double avgDist2 = getAverageDistance(b.x - h * Math.sin(phi_p), b.z + h * Math.cos(phi_p), 10, 20);
+		double avgDistDerivative = (avgDist2 - avgDist) / h;
+		Ring closestRing = Ring.getClosestRings(b.x / 2.0, b.z / 2.0).fst;
+		double optDist = (closestRing.innerRadius + distanceThreshold / 16.0) * 2.0;
+		double optX = b.x;
+		double optZ = b.z;
+		double optHighrollProb = 0.1;
+		if (divineContext != null && closestRing.ring == 0) {
+			org.dpdns.timerverse.ninjabrain.algorithm.divine.DivineContext dc = (org.dpdns.timerverse.ninjabrain.algorithm.divine.DivineContext) divineContext;
+			BlindPosition divinePos = dc.getClosestCoords(optX, optZ, optDist);
+			optX = divinePos.x;
+			optZ = divinePos.z;
+			optHighrollProb *= divineContext.relativeDensity();
+		}
+		double optR = Math.sqrt(optX * optX + optZ * optZ);
+		optX *= optDist / optR;
+		optZ *= optDist / optR;
+		return new BlindResult(b.x, b.z, probability, distanceThreshold, avgDist * 16, avgDistDerivative, ninetiethPercentileDerivative, Coords.getPhi(optX - b.x, optZ - b.z), Coords.dist(optX, optZ, b.x, b.z), optHighrollProb);
+	}
+
+	public DivineResult divine(IDivineContext divineContext) {
+		Fossil f = divineContext.getFossil();
+		return f != null ? new DivineResult(f) : null;
+	}
+
+	private double getHighrollProbability(double x, double z, int distanceThreshold, IDivineContext divineContext) {
+		double probability = 0;
+		Prior prior = new Prior((int) x * 8 / 16, (int) z * 8 / 16, distanceThreshold / 16 + 1, divineContext);
+		for (Chunk c : prior.getChunks()) {
+			double dx = x * 8 - c.x * 16 + 8;
+			double dz = z * 8 - c.z * 16 + 8;
+			if (dx * dx + dz * dz < distanceThreshold * distanceThreshold)
+				probability += c.weight;
+		}
+		return probability;
+	}
+
+	private double getAverageDistance(double netherX, double netherZ, double rdPhi, double dR) {
+		Pair<Ring, Ring> rings = Ring.getClosestRings(netherX / 2.0, netherZ / 2.0);
+		Ring ring = rings.fst;
+		Ring ring2 = rings.snd;
+		double sectionAngle = 2 * Math.PI / ring.numStrongholds;
+		double sectionAngle2 = 2 * Math.PI / ring2.numStrongholds;
+		double ringThickness = ring.outerRadius - ring.innerRadius;
+		double dPhi = rdPhi / ring.innerRadius;
+		int nPhi = (int) (sectionAngle / dPhi);
+		dPhi = sectionAngle / nPhi;
+		int nR = (int) (ringThickness / dR);
+		dR = ringThickness / nR;
+		double phi0 = phi(netherX, netherZ);
+		double z = netherZ / 2.0;
+		double x = netherX / 2.0;
+		double integral = 0;
+		for (int i = 0; i < nPhi; i++) {
+			double phi = phi0 - sectionAngle / 2.0 + i * dPhi;
+			for (int j = 0; j < nR; j++) {
+				double r = ring.innerRadius + (j + 0.5) * dR;
+				double d = distance(x, z, phi, r);
+				ArrayList<Uniform> otherStrongholds = new ArrayList<Uniform>();
+				otherStrongholds.add(getStrongholdDistr(x, z, phi + sectionAngle, ring));
+				otherStrongholds.add(getStrongholdDistr(x, z, phi - sectionAngle, ring));
+				int i2 = i % 5 - 2;
+				double phi2 = phi0 + i2 / 5.0 * sectionAngle2;
+				otherStrongholds.add(getStrongholdDistr(x, z, phi2, ring2));
+				otherStrongholds.add(getStrongholdDistr(x, z, phi2 + sectionAngle2, ring2));
+				otherStrongholds.add(getStrongholdDistr(x, z, phi2 - sectionAngle2, ring2));
+				Pair<Double, Double> pair = approxAverageDist(otherStrongholds, d);
+				integral += (d * (1.0 - pair.fst) + pair.snd * pair.fst) / (nPhi * nR);
+			}
+		}
+		return integral;
+	}
+
+	private double phi(double x, double z) {
+		return -Math.atan2(x, z);
+	}
+
+	private class Uniform {
+		public final double a;
+		public final double b;
+
+		public Uniform(double a, double b) {
+			this.a = a;
+			this.b = b;
+		}
+	}
+
+	private Uniform getStrongholdDistr(double x, double z, double phi, Ring ring) {
+		double min = distance(x, z, phi, ring.innerRadius);
+		double max = distance(x, z, phi, ring.outerRadius);
+		return min < max ? new Uniform(min, max) : new Uniform(max, min);
+	}
+
+	private Pair<Double, Double> approxAverageDist(List<Uniform> distributions, double maxDist) {
+		ArrayList<Double> discontinuitites = new ArrayList<Double>();
+		for (Uniform u : distributions) {
+			if (u.a < maxDist) {
+				discontinuitites.add(u.a);
+				if (u.b < maxDist)
+					discontinuitites.add(u.b);
+			}
+		}
+		discontinuitites.add(maxDist);
+		discontinuitites.sort((x1, x2) -> Double.compare(x1, x2));
+		double cumulativeProb = 0;
+		double expectedDistance = 0;
+		for (int j = 1; j < discontinuitites.size(); j++) {
+			int i = j - 1;
+			double lower = discontinuitites.get(i);
+			double upper = discontinuitites.get(j);
+			double center = (lower + upper) / 2.0;
+			double complementary_prob = 1.0;
+			double n = 0;
+			for (Uniform u : distributions) {
+				if (center > u.a && center < u.b) {
+					complementary_prob *= (u.b - upper) / (u.b - lower);
+					n += (upper - lower) / (u.b - lower);
+				}
+			}
+			double prob = (1.0 - cumulativeProb) * (1.0 - complementary_prob);
+			cumulativeProb += prob;
+			double ev = (upper + n * lower) / (n + 1);
+			expectedDistance += prob * ev;
+		}
+		return new Pair<Double, Double>(cumulativeProb, cumulativeProb > 0 ? expectedDistance / cumulativeProb : 0);
+	}
+
+	private double distance(double x, double z, double phi, double r) {
+		double dx = x + r * Math.sin(phi);
+		double dz = z - r * Math.cos(phi);
+		return Math.sqrt(dx * dx + dz * dz);
+	}
+
+}

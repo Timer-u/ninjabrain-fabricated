@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "org.dpdns.timerverse.ninjabrain.client.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"EnderEyeItemMixin",
+		"InGameHudMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
