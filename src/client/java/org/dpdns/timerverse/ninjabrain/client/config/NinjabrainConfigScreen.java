@@ -15,47 +15,67 @@ public final class NinjabrainConfigScreen {
 
 		var builder = ConfigBuilder.create()
 			.setParentScreen(parent)
-			.setTitle(Component.literal("Ninjabrain-Fabricated Config"));
+			.setTitle(Component.translatable("ninjabrain.config.title"));
 
 		var entry = ConfigEntryBuilder.create();
-		var cat = builder.getOrCreateCategory(Component.literal("General"));
+		var cat = builder.getOrCreateCategory(Component.translatable("ninjabrain.config.category.general"));
 
-		cat.addEntry(entry.startDoubleField(Component.literal("Standard Deviation"), holder.data.stdDev())
+		cat.addEntry(entry.startDoubleField(Component.translatable("ninjabrain.config.stdDev"), holder.data.stdDev())
 			.setDefaultValue(0.05).setMin(0.001).setMax(1.0)
-			.setSaveConsumer(v -> holder.data = new NinjabrainConfig.NinjabrainConfigData(
-				v, holder.data.altStdDev(), holder.data.crosshairCorrection(),
-				holder.data.numberOfPredictions(), holder.data.useAdvancedStatistics()))
+			.setTooltip(Component.translatable("ninjabrain.config.stdDev.tooltip"))
+			.setSaveConsumer(v -> holder.data = holder.data.withStdDev(v))
 			.build());
 
-		cat.addEntry(entry.startDoubleField(Component.literal("Alt Standard Deviation"), holder.data.altStdDev())
+		cat.addEntry(entry.startDoubleField(Component.translatable("ninjabrain.config.altStdDev"), holder.data.altStdDev())
 			.setDefaultValue(0.10).setMin(0.001).setMax(1.0)
-			.setSaveConsumer(v -> holder.data = new NinjabrainConfig.NinjabrainConfigData(
-				holder.data.stdDev(), v, holder.data.crosshairCorrection(),
-				holder.data.numberOfPredictions(), holder.data.useAdvancedStatistics()))
+			.setTooltip(Component.translatable("ninjabrain.config.altStdDev.tooltip"))
+			.setSaveConsumer(v -> holder.data = holder.data.withAltStdDev(v))
 			.build());
 
-		cat.addEntry(entry.startDoubleField(Component.literal("Crosshair Correction"), holder.data.crosshairCorrection())
+		cat.addEntry(entry.startDoubleField(Component.translatable("ninjabrain.config.crosshairCorrection"), holder.data.crosshairCorrection())
 			.setDefaultValue(0.0).setMin(-10.0).setMax(10.0)
-			.setSaveConsumer(v -> holder.data = new NinjabrainConfig.NinjabrainConfigData(
-				holder.data.stdDev(), holder.data.altStdDev(), v,
-				holder.data.numberOfPredictions(), holder.data.useAdvancedStatistics()))
+			.setTooltip(Component.translatable("ninjabrain.config.crosshairCorrection.tooltip"))
+			.setSaveConsumer(v -> holder.data = holder.data.withCrosshairCorrection(v))
 			.build());
 
-		cat.addEntry(entry.startIntField(Component.literal("Number of Predictions"), holder.data.numberOfPredictions())
+		cat.addEntry(entry.startIntField(Component.translatable("ninjabrain.config.numberOfPredictions"), holder.data.numberOfPredictions())
 			.setDefaultValue(5).setMin(1).setMax(20)
-			.setSaveConsumer(v -> holder.data = new NinjabrainConfig.NinjabrainConfigData(
-				holder.data.stdDev(), holder.data.altStdDev(), holder.data.crosshairCorrection(),
-				v, holder.data.useAdvancedStatistics()))
+			.setTooltip(Component.translatable("ninjabrain.config.numberOfPredictions.tooltip"))
+			.setSaveConsumer(v -> holder.data = holder.data.withNumberOfPredictions(v))
 			.build());
 
-		cat.addEntry(entry.startBooleanToggle(Component.literal("Advanced Statistics"), holder.data.useAdvancedStatistics())
+		cat.addEntry(entry.startBooleanToggle(Component.translatable("ninjabrain.config.advancedStatistics"), holder.data.useAdvancedStatistics())
 			.setDefaultValue(false)
-			.setSaveConsumer(v -> holder.data = new NinjabrainConfig.NinjabrainConfigData(
-				holder.data.stdDev(), holder.data.altStdDev(), holder.data.crosshairCorrection(),
-				holder.data.numberOfPredictions(), v))
+			.setTooltip(Component.translatable("ninjabrain.config.advancedStatistics.tooltip"))
+			.setSaveConsumer(v -> holder.data = holder.data.withUseAdvancedStatistics(v))
 			.build());
 
-		cat.addEntry(entry.startTextDescription(Component.literal("Saved to config/ninjabrain-fabricated.json"))
+		var hudCat = builder.getOrCreateCategory(Component.translatable("ninjabrain.config.category.hud"));
+
+		hudCat.addEntry(entry.startIntSlider(Component.translatable("ninjabrain.config.hudBackgroundAlpha"), holder.data.hudBackgroundAlpha(), 0, 255)
+			.setDefaultValue(136)
+			.setTooltip(Component.translatable("ninjabrain.config.hudBackgroundAlpha.tooltip"))
+			.setTextGetter(v -> Component.literal(String.valueOf(v)))
+			.setSaveConsumer(v -> holder.data = holder.data.withHudBackgroundAlpha(v))
+			.build());
+
+		var positions = java.util.List.of("top_left", "top_right", "bottom_left", "bottom_right");
+		hudCat.addEntry(entry.startStringDropdownMenu(
+				Component.translatable("ninjabrain.config.hudPosition"),
+				holder.data.hudPosition())
+			.setSelections(positions)
+			.setDefaultValue("top_left")
+			.setTooltip(Component.translatable("ninjabrain.config.hudPosition.tooltip"))
+			.setSaveConsumer(v -> holder.data = holder.data.withHudPosition(v))
+			.build());
+
+		hudCat.addEntry(entry.startDoubleField(Component.translatable("ninjabrain.config.hudScale"), holder.data.hudScale())
+			.setDefaultValue(1.0).setMin(0.25).setMax(4.0)
+			.setTooltip(Component.translatable("ninjabrain.config.hudScale.tooltip"))
+			.setSaveConsumer(v -> holder.data = holder.data.withHudScale(v))
+			.build());
+
+		cat.addEntry(entry.startTextDescription(Component.translatable("ninjabrain.config.savedTo"))
 			.build());
 
 		builder.setSavingRunnable(() -> {

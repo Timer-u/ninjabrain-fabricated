@@ -19,11 +19,23 @@ public final class NinjabrainConfig {
 		double altStdDev,
 		double crosshairCorrection,
 		int numberOfPredictions,
-		boolean useAdvancedStatistics
+		boolean useAdvancedStatistics,
+		int hudBackgroundAlpha,
+		String hudPosition,
+		double hudScale
 	) {
 		public static NinjabrainConfigData defaults() {
-			return new NinjabrainConfigData(0.05, 0.10, 0.0, 5, false);
+			return new NinjabrainConfigData(0.05, 0.10, 0.0, 5, false, 136, "top_left", 1.0);
 		}
+
+		public NinjabrainConfigData withStdDev(double v) { return new NinjabrainConfigData(v, altStdDev, crosshairCorrection, numberOfPredictions, useAdvancedStatistics, hudBackgroundAlpha, hudPosition, hudScale); }
+		public NinjabrainConfigData withAltStdDev(double v) { return new NinjabrainConfigData(stdDev, v, crosshairCorrection, numberOfPredictions, useAdvancedStatistics, hudBackgroundAlpha, hudPosition, hudScale); }
+		public NinjabrainConfigData withCrosshairCorrection(double v) { return new NinjabrainConfigData(stdDev, altStdDev, v, numberOfPredictions, useAdvancedStatistics, hudBackgroundAlpha, hudPosition, hudScale); }
+		public NinjabrainConfigData withNumberOfPredictions(int v) { return new NinjabrainConfigData(stdDev, altStdDev, crosshairCorrection, v, useAdvancedStatistics, hudBackgroundAlpha, hudPosition, hudScale); }
+		public NinjabrainConfigData withUseAdvancedStatistics(boolean v) { return new NinjabrainConfigData(stdDev, altStdDev, crosshairCorrection, numberOfPredictions, v, hudBackgroundAlpha, hudPosition, hudScale); }
+		public NinjabrainConfigData withHudBackgroundAlpha(int v) { return new NinjabrainConfigData(stdDev, altStdDev, crosshairCorrection, numberOfPredictions, useAdvancedStatistics, v, hudPosition, hudScale); }
+		public NinjabrainConfigData withHudPosition(String v) { return new NinjabrainConfigData(stdDev, altStdDev, crosshairCorrection, numberOfPredictions, useAdvancedStatistics, hudBackgroundAlpha, v, hudScale); }
+		public NinjabrainConfigData withHudScale(double v) { return new NinjabrainConfigData(stdDev, altStdDev, crosshairCorrection, numberOfPredictions, useAdvancedStatistics, hudBackgroundAlpha, hudPosition, v); }
 	}
 
 	private NinjabrainConfig() {

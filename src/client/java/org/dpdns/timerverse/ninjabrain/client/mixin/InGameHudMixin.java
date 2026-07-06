@@ -8,6 +8,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.Hud;
 
+import org.dpdns.timerverse.ninjabrain.client.config.NinjabrainConfig;
 import org.dpdns.timerverse.ninjabrain.algorithm.data.MeasurementManager;
 import org.dpdns.timerverse.ninjabrain.algorithm.stronghold.ChunkPrediction;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,8 +20,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Hud.class)
 public class InGameHudMixin {
 
-	@Unique
-	private static final int BACKGROUND = 0x88000000;
 	@Unique
 	private static final int GREEN = 0xFF55FF55;
 	@Unique
@@ -42,21 +41,49 @@ public class InGameHudMixin {
 		Font font = mc.font;
 		if (font == null) return;
 
-		int x = 4;
-		int y = 4;
-		int lineHeight = font.lineHeight + 2;
-		int panelWidth = 180;
+		var config = NinjabrainConfig.load();
+		double scale = config.hudScale();
+		int bgAlpha = config.hudBackgroundAlpha();
+		String position = config.hudPosition();
+
+		int baseX = (int)(4 * scale);
+		int baseY = (int)(4 * scale);
+		int panelWidth = (int)(180 * scale);
+		int lineHeight = (int)((font.lineHeight + 2) * scale);
 
 		int numThrows = mgr.getThrowCount();
 		int predLines = Math.min(predictions.size(), 5);
 		int totalLines = 2 + predLines + 1;
-		int panelHeight = totalLines * lineHeight + 8;
+		int panelHeight = totalLines * lineHeight + (int)(8 * scale);
 
-		extractor.fill(x - 2, y - 2, x + panelWidth, y + panelHeight, BACKGROUND);
-		extractor.outline(x - 2, y - 2, panelWidth, panelHeight, BORDER);
+		int screenWidth = mc.getWindow().getGuiScaledWidth();
+		int screenHeight = mc.getWindow().getGuiScaledHeight();
+
+		int x, y;
+		switch (position) {
+			case "top_right":
+				x = screenWidth - panelWidth - baseX;
+				y = baseY;
+				break;
+			case "bottom_left":
+				x = baseX;
+				y = screenHeight - panelHeight - baseY;
+				break;
+			case "bottom_right":
+				x = screenWidth - panelWidth - baseX;
+				y = screenHeight - panelHeight - baseY;
+				break;
+			default:
+				x = baseX;
+				y = baseY;
+		}
+
+		int bgColor = (bgAlpha << 24) | 0x000000;
+		extractor.fill(x - (int)(2 * scale), y - (int)(2 * scale), x + panelWidth, y + panelHeight, bgColor);
+		extractor.outline(x - (int)(2 * scale), y - (int)(2 * scale), panelWidth, panelHeight, BORDER);
 
 		int tx = x;
-		int ty = y + 2;
+		int ty = y + (int)(2 * scale);
 
 		extractor.text(font, "Ninjabrain-Fabricated", tx, ty, GREEN);
 		ty += lineHeight;
