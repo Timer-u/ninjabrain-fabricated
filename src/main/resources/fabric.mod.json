@@ -5,14 +5,14 @@
 	"name": "Ninjabrain-Fabricated",
 	"description": "In-game stronghold calculator for Minecraft speedrunning. Port of Ninjabrain Bot using Bayesian inference.",
 	"authors": [
-		"Timerverse",
+		"Timer",
 		"Ninjabrain (original algorithm)"
 	],
 	"contact": {
-		"homepage": "https://github.com/Timerverse/ninjabrain-fabricated",
-		"sources": "https://github.com/Timerverse/ninjabrain-fabricated"
+		"homepage": "https://github.com/Timer-u/ninjabrain-fabricated",
+		"sources": "https://github.com/Timer-u/ninjabrain-fabricated"
 	},
-	"license": "GPL-3.0-only",
+	"license": "GPL-3.0",
 	"icon": "assets/ninjabrain-fabricated/icon.png",
 	"environment": "client",
 	"entrypoints": {
