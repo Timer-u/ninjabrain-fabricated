@@ -1,0 +1,8 @@
+{
+	"key.category.ninjabrain-fabricated.ninjabrain": "Ninjabrain",
+	"key.ninjabrain.reset": "重置",
+	"key.ninjabrain.undo": "撤销",
+	"key.ninjabrain.lock": "锁定/解锁",
+	"key.ninjabrain.increment": "微调增加",
+	"key.ninjabrain.decrement": "微调减少"
+}
