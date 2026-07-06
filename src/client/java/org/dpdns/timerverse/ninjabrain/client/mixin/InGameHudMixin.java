@@ -47,6 +47,7 @@ public class InGameHudMixin {
 		String position = config.hudPosition();
 
 		int margin = 4;
+		int pad = 2;
 		int panelWidth = 180;
 		int lineHeight = font.lineHeight + 2;
 
@@ -58,22 +59,19 @@ public class InGameHudMixin {
 		int screenWidth = mc.getWindow().getGuiScaledWidth();
 		int screenHeight = mc.getWindow().getGuiScaledHeight();
 
-		int panelScreenW = (int)(panelWidth * scale);
-		int panelScreenH = (int)(panelHeight * scale);
-
-		int originX, originY;
+		double originX, originY;
 		switch (position) {
 			case "top_right":
-				originX = screenWidth - panelScreenW - margin;
+				originX = screenWidth - margin - panelWidth * scale;
 				originY = margin;
 				break;
 			case "bottom_left":
 				originX = margin;
-				originY = screenHeight - panelScreenH - margin;
+				originY = screenHeight - margin - panelHeight * scale;
 				break;
 			case "bottom_right":
-				originX = screenWidth - panelScreenW - margin;
-				originY = screenHeight - panelScreenH - margin;
+				originX = screenWidth - margin - panelWidth * scale;
+				originY = screenHeight - margin - panelHeight * scale;
 				break;
 			default:
 				originX = margin;
@@ -82,17 +80,18 @@ public class InGameHudMixin {
 
 		var pose = extractor.pose();
 		pose.pushMatrix();
-		pose.translate(originX, originY);
+		pose.translate((float)originX, (float)originY);
 		pose.scale((float)scale, (float)scale);
 
 		int bgColor = (bgAlpha << 24) | 0x000000;
-		extractor.fill(-2, -2, panelWidth, panelHeight, bgColor);
+		int bgL = -pad, bgT = -pad, bgR = panelWidth + pad, bgB = panelHeight + pad;
+		extractor.fill(bgL, bgT, bgR, bgB, bgColor);
 		if (bgAlpha > 0) {
-			extractor.outline(-2, -2, panelWidth, panelHeight, BORDER);
+			extractor.outline(bgL, bgT, bgR - bgL, bgB - bgT, BORDER);
 		}
 
 		int cx = 0;
-		int cy = 2;
+		int cy = pad;
 
 		extractor.text(font, "Ninjabrain-Fabricated", cx, cy, GREEN);
 		cy += lineHeight;
