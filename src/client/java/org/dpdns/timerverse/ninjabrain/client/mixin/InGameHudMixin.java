@@ -46,63 +46,74 @@ public class InGameHudMixin {
 		int bgAlpha = config.hudBackgroundAlpha();
 		String position = config.hudPosition();
 
-		int baseX = (int)(4 * scale);
-		int baseY = (int)(4 * scale);
-		int panelWidth = (int)(180 * scale);
-		int lineHeight = (int)((font.lineHeight + 2) * scale);
+		int margin = 4;
+		int panelWidth = 180;
+		int lineHeight = font.lineHeight + 2;
 
 		int numThrows = mgr.getThrowCount();
 		int predLines = Math.min(predictions.size(), 5);
 		int totalLines = 2 + predLines + 1;
-		int panelHeight = totalLines * lineHeight + (int)(8 * scale);
+		int panelHeight = totalLines * lineHeight + 8;
 
 		int screenWidth = mc.getWindow().getGuiScaledWidth();
 		int screenHeight = mc.getWindow().getGuiScaledHeight();
 
-		int x, y;
+		int panelScreenW = (int)(panelWidth * scale);
+		int panelScreenH = (int)(panelHeight * scale);
+
+		int originX, originY;
 		switch (position) {
 			case "top_right":
-				x = screenWidth - panelWidth - baseX;
-				y = baseY;
+				originX = screenWidth - panelScreenW - margin;
+				originY = margin;
 				break;
 			case "bottom_left":
-				x = baseX;
-				y = screenHeight - panelHeight - baseY;
+				originX = margin;
+				originY = screenHeight - panelScreenH - margin;
 				break;
 			case "bottom_right":
-				x = screenWidth - panelWidth - baseX;
-				y = screenHeight - panelHeight - baseY;
+				originX = screenWidth - panelScreenW - margin;
+				originY = screenHeight - panelScreenH - margin;
 				break;
 			default:
-				x = baseX;
-				y = baseY;
+				originX = margin;
+				originY = margin;
 		}
 
+		var pose = extractor.pose();
+		pose.pushMatrix();
+		pose.translate(originX, originY);
+		pose.scale((float)scale, (float)scale);
+
 		int bgColor = (bgAlpha << 24) | 0x000000;
-		extractor.fill(x - (int)(2 * scale), y - (int)(2 * scale), x + panelWidth, y + panelHeight, bgColor);
-		extractor.outline(x - (int)(2 * scale), y - (int)(2 * scale), panelWidth, panelHeight, BORDER);
+		extractor.fill(-2, -2, panelWidth, panelHeight, bgColor);
+		if (bgAlpha > 0) {
+			extractor.outline(-2, -2, panelWidth, panelHeight, BORDER);
+		}
 
-		int tx = x;
-		int ty = y + (int)(2 * scale);
+		int cx = 0;
+		int cy = 2;
 
-		extractor.text(font, "Ninjabrain-Fabricated", tx, ty, GREEN);
-		ty += lineHeight;
-		extractor.text(font, "Throws: " + numThrows, tx, ty, GRAY);
-		ty += lineHeight;
+		extractor.text(font, "Ninjabrain-Fabricated", cx, cy, GREEN);
+		cy += lineHeight;
+		extractor.text(font, "Throws: " + numThrows, cx, cy, GRAY);
+		cy += lineHeight;
 
 		for (int i = 0; i < predLines; i++) {
 			ChunkPrediction p = predictions.get(i);
 			if (p == null || !p.success) break;
 			extractor.text(font, String.format("#%d: (%d, %d) %s  %dm",
 				i + 1, p.eightEightX(), p.eightEightZ(),
-				p.certaintyString, p.distance()), tx, ty, YELLOW);
-			ty += lineHeight;
+				p.certaintyString, p.distance()), cx, cy, YELLOW);
+			cy += lineHeight;
 		}
 
 		ChunkPrediction best = mgr.getBestPrediction();
 		if (best != null && best.success) {
-			extractor.text(font, "4,4: (" + best.fourFourX() + ", " + best.fourFourZ() + ")", tx, ty, GRAY);
+			extractor.text(font, "4,4: (" + best.fourFourX() + ", " + best.fourFourZ() + ")", cx, cy, GRAY);
 		}
+
+		pose.popMatrix();
 	}
 
 }
