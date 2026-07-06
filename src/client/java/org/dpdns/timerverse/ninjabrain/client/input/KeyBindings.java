@@ -24,13 +24,13 @@ public class KeyBindings {
 
 	public static void register() {
 		resetKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-			"key.ninjabrain.reset", GLFW.GLFW_KEY_R, CATEGORY));
+			"key.ninjabrain.reset", -1, CATEGORY));
 
 		undoKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-			"key.ninjabrain.undo", GLFW.GLFW_KEY_Z, CATEGORY));
+			"key.ninjabrain.undo", -1, CATEGORY));
 
 		lockKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-			"key.ninjabrain.lock", GLFW.GLFW_KEY_L, CATEGORY));
+			"key.ninjabrain.lock", -1, CATEGORY));
 
 		incrementKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
 			"key.ninjabrain.increment", GLFW.GLFW_KEY_UP, CATEGORY));

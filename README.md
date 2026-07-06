@@ -52,13 +52,13 @@ Settings:
 
 | Key | Action | Description |
 |-----|--------|-------------|
-| **R** | Reset | Clear all throws and fossil data |
-| **Z** | Undo | Remove the last throw |
-| **L** | Lock/Unlock | Lock measurements to prevent accidental changes |
+| *(unbound)* | Reset | Clear all throws and fossil data |
+| *(unbound)* | Undo | Remove the last throw |
+| *(unbound)* | Lock/Unlock | Lock measurements to prevent accidental changes |
 | **↑ (Up)** | Increment | Increase correction on the last throw (+0.01°, +1 increment) |
 | **↓ (Down)** | Decrement | Decrease correction on the last throw (-0.01°, -1 increment) |
 
-Configurable in **Options → Controls → Ninjabrain**.
+All binds are configurable in **Options → Controls → Ninjabrain**.
 
 ## Features
 
