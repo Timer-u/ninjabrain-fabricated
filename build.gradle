@@ -34,7 +34,7 @@ dependencies {
 	implementation "com.terraformersmc:modmenu:20.0.1"
 
 	// Cloth Config (config UI)
-	implementation "me.shedaniel.cloth:cloth-config-fabric:26.3.157"
+	implementation "me.shedaniel.cloth:cloth-config-fabric:26.3.158"
 }
 
 processResources {
